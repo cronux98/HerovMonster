@@ -1,0 +1,206 @@
+import random
+import time
+
+level_hero = 1
+
+
+class Hero:
+    def __init__(self):
+        self.attack = random.randint(5,10)
+        self.defense = random.randint(3,6)
+        self.magic = random.randint(10,20)
+        self.heal = random.randint(10,20)
+        self.health = random.randint(200,500)
+        self.level = level_hero
+    def level_up(self):
+        level_val = random.randint(30, 60)
+        self.level += 1
+        if self.level == 8:
+            print("Your magic has been evolved to divine level!!!\n")
+            self.attack += level_val*10
+            self.defense += level_val*10
+            self.magic += level_val*10
+            self.heal += level_val*10
+            print(f"""
+                You have leveled up! Level: {self.level}
+                Attack has increased! {self.attack} (+{level_val})
+                Defend has increased! {self.defense} (+{level_val})
+                Magic has increased! {self.magic} (+{level_val})
+                Heal has increased! {self.heal} (+{level_val})
+            """)
+        else:
+            self.attack += level_val
+            self.defense += level_val
+            self.magic += level_val
+            self.heal += level_val
+            print(f"""
+                You have leveled up! Level: {self.level}
+                Attack has increased! {self.attack} (+{level_val})
+                Defend has increased! {self.defense} (+{level_val})
+                Magic has increased! {self.magic} (+{level_val})
+                Heal has increased! {self.heal} (+{level_val})
+            """)
+        self.health += random.randint(200,500)  # Reset health after leveling up
+
+    def take_damage(self, damage):
+        self.health -= max(0, damage - self.defense)
+
+    def is_dead(self):
+        if self.health < 0:
+            self.health = 0
+        return self.health <= 0
+
+    def action(self, monster):
+        print(f"------------------------")
+        print(f"Hero's health: {self.health}")
+
+        choice = random.choice(['attack', 'magic', 'heal', 'buff'])
+        if choice == 'attack':
+            crit_chance = random.randint(1,10)
+            if crit_chance > 7:
+                damage = self.attack * 3
+                print(f"CRITICAL HIT! Hero attacks for {self.attack} damage!")
+                monster.take_damage(damage)
+            else:
+                print(f"Hero attacks for {self.attack} damage!")
+                monster.take_damage(self.attack)
+        elif choice == 'magic':
+            crit_chance = random.randint(1, 10)
+            if self.level > 7:
+                if crit_chance > 7:
+                    damage = self.magic * 10
+                    damage_heal = self.heal * 10
+                    self.health += damage_heal
+                    print(f"CRITICAL HIT! Hero used divine magic! Dealt {damage} damage to the enemy and healed by {damage_heal}!")
+                    monster.take_damage(damage)
+                else:
+                    damage = self.magic * 3
+                    damage_heal = self.heal * 3
+                    self.health += damage_heal
+                    print(f"Hero used divine magic! Dealt {damage} damage to the enemy and healed by {damage_heal}!")
+                    monster.take_damage(damage)
+            else:
+                if crit_chance > 7:
+                    damage = self.magic * 10
+                    print(f"CRITICAL HIT! Hero used magic and dealt for {damage} damage!")
+                    monster.take_damage(damage)
+                else:
+                    damage = self.magic * 3
+                    print(f"Hero used magic and dealt {damage}!")
+                    monster.take_damage(damage)
+        elif choice == 'buff':
+            buff_val = random.randint(10,20)
+            self.attack += buff_val
+            self.defense += buff_val
+            self.magic += buff_val
+            self.heal += buff_val
+            print(f"Attack: {self.attack} (+{buff_val})^\t\tDefend has increased! {self.defense} (+{buff_val})^\t\tMagic has increased! {self.magic} (+{buff_val})^\t\tHeal has increased! {self.heal} (+{buff_val}")
+        elif choice == 'heal':
+            print(f"Hero heals for {self.heal}!")
+            self.health += self.heal
+            # if self.health > 100:
+            #     self.health = 100
+
+
+class Monster:
+    def __init__(self, level):
+        self.level = level
+        self.attack = level * random.randint(10,20)
+        self.health = level * random.randint(200,1000)
+        self.defense = level * random.randint(5,10)
+        self.magic = level * random.randint(5,10)
+        self.heal = level * random.randint(10,15)
+        monsters = ["Goblin", "Goblin Leader", "Orc", "Orc Leader", "Harpy", "Werewolf", "Vampire", "Demon",
+                    "Duke demon", "Demon Lord"]
+        print(f"{monsters[self.level - 1]} has arrived!\n")  # adjusted index
+
+    def take_damage(self, damage):
+        self.health -= max(0, damage - self.defense)
+
+    def is_dead(self):
+        if self.health < 0:
+            self.health = 0
+        return self.health <= 0
+
+    def action(self, hero):
+        print(f"\nMonster's health: {self.health}")
+
+        choice = random.choice(['attack', 'magic', 'heal', 'buff'])
+        if choice == 'attack':
+            print(f"Monster attacks for {self.attack} damage!")
+            hero.take_damage(self.attack)
+        elif choice == 'magic':
+            if self.level >= 8:
+                damage = self.magic * self.level * 4
+                buff_val = random.randint(3 * self.level, 9 * self.level)
+                hero.take_damage(damage)
+                self.health += self.heal
+                self.defense += buff_val
+                self.magic += buff_val
+                print(f"Monster used DEMON MAGIC! Dealt {damage}, buffed magic, defense and healed itself by {self.heal}")
+            elif 5 <= self.level < 8:
+                damage = self.magic * self.level * 2
+                hero.take_damage(damage)
+                self.health += self.heal
+                print(f"Monster used BLOODSUCKING and dealt {damage} and healed itself by {self.heal}")
+            elif 3 <= self.level < 5:
+                damage = self.magic * self.level
+                print(f"Monster used LIGHTNING and dealt {damage}!")
+                hero.take_damage(damage)
+            else:
+                print(f"Monster used FIREBALL and dealt {self.magic}!")
+                hero.take_damage(self.magic * (self.level * 2))
+        elif choice == 'buff':
+            buff_val = random.randint(3*self.level, 9*self.level)
+            self.attack += buff_val
+            self.defense += buff_val
+            self.magic += buff_val
+            self.heal += buff_val
+            print(f"Attack: {self.attack} (+{buff_val})^\t\tDefend has increased! {self.defense} (+{buff_val})^\t\tMagic has increased! {self.magic} (+{buff_val})^\t\tHeal has increased! {self.heal} (+{buff_val})")
+        elif choice == 'heal':
+            print(f"Monster heals for {self.heal}!")
+            self.health += self.heal
+
+    def reset_stats(self):
+        self.attack = 1
+        self.health = 1
+        self.defense = 1
+        self.magic = 1
+        self.heal = 1
+
+
+class Tower:
+    def __init__(self, levels=10):
+        self.hero = Hero()
+        self.current_level = 1
+        self.levels = levels
+
+    def start(self):
+        while self.current_level <= self.levels:
+            print(f"Entering Tower Level {self.current_level}!\n")
+            monster = Monster(self.current_level)
+
+            while not self.hero.is_dead() and not monster.is_dead():
+                self.hero.action(monster)
+                if monster.is_dead():
+                    break
+                monster.action(self.hero)
+                time.sleep(1)
+                #print("\n")
+
+            if self.hero.is_dead():
+                print(f"Hero has fallen at Tower Level {self.current_level}. Game Over!")
+                break
+
+            print(f"Hero has defeated the monster at Tower Level {self.current_level} and levels up!")
+            self.hero.level_up()
+            monster.reset_stats()
+            self.current_level += 1
+
+        if self.current_level > self.levels:
+            print("Congratulations! Hero has conquered the tower!")
+
+
+if __name__ == '__main__':
+    tower = Tower()
+    tower.start()
